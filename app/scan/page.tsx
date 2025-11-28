@@ -7,14 +7,13 @@ import type { ComponentType } from "react";
 import type { QrPayload } from "../../lib/qrSigning";
 import { verifySignedPayload } from "../../lib/qrSigning";
 
-// The scanner only works in the browser, so we disable SSR for it.
-// Library exports a named 'Scanner' component; we alias it to QrScanner here.
+// Dynamically import the QR scanner (client-only)
 const QrScanner = dynamic(
-  () =>
+  async () =>
     import("@yudiel/react-qr-scanner").then(
-      (mod) => mod.Scanner as ComponentType<any>,
+      (mod) => mod.Scanner as ComponentType<{ onDecode: (data: string | null) => void; onError: (err: unknown) => void; constraints?: MediaTrackConstraints; className?: string }>
     ),
-  { ssr: false },
+  { ssr: false }
 );
 
 type VerifiedInfo = {
@@ -30,7 +29,7 @@ export default function ScanPage() {
     if (!data) return;
 
     try {
-      const parsed = JSON.parse(data) as QrPayload;
+      const parsed: QrPayload = JSON.parse(data);
       const isValid = await verifySignedPayload(parsed);
 
       if (!isValid) {
@@ -40,26 +39,23 @@ export default function ScanPage() {
       }
 
       setScanError(null);
-      setVerifiedInfo({
-        name: parsed.name,
-        phone: parsed.phone,
-      });
-    } catch (err) {
+      setVerifiedInfo({ name: parsed.name, phone: parsed.phone });
+    } catch (error) {
       setVerifiedInfo(null);
       setScanError("Failed to read QR code. Make sure it was generated here.");
-      // eslint-disable-next-line no-console
-      console.error(err);
+      console.error("QR decode error:", error);
     }
   }, []);
 
-  const handleError = useCallback((err: unknown) => {
-    // Only show a generic camera error once.
-    if (!scanError) {
-      setScanError("Unable to access camera. Please check permissions.");
-    }
-    // eslint-disable-next-line no-console
-    console.error(err);
-  }, [scanError]);
+  const handleError = useCallback(
+    (err: unknown) => {
+      if (!scanError) {
+        setScanError("Unable to access camera. Please check permissions.");
+      }
+      console.error("Camera error:", err);
+    },
+    [scanError]
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-slate-50 flex flex-col items-center justify-center px-4 py-10">
@@ -69,8 +65,7 @@ export default function ScanPage() {
             QR Scanner
           </h1>
           <p className="text-sm text-slate-400">
-            Point your camera at a QR code generated on this site. The signature
-            will be verified before showing any details.
+            Point your camera at a QR code generated on this site. The signature will be verified before showing any details.
           </p>
         </header>
 
@@ -110,8 +105,7 @@ export default function ScanPage() {
               </div>
             ) : (
               <p className="text-sm text-slate-500">
-                No valid QR scanned yet. Hold a code steady in front of the
-                camera.
+                No valid QR scanned yet. Hold a code steady in front of the camera.
               </p>
             )}
           </div>
@@ -132,5 +126,3 @@ export default function ScanPage() {
     </div>
   );
 }
-
-
