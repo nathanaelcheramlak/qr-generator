@@ -11,7 +11,7 @@ import { verifySignedPayload } from "../../lib/qrSigning";
 const QrScanner = dynamic(
   async () =>
     import("@yudiel/react-qr-scanner").then(
-      (mod) => mod.Scanner as ComponentType<{ onDecode: (data: string | null) => void; onError: (err: unknown) => void; constraints?: MediaTrackConstraints; className?: string }>
+      (mod) => mod.Scanner as ComponentType<{ onScan?: (result: unknown) => void; onDecode: (data: string | null) => void; onError: (err: unknown) => void; constraints?: MediaTrackConstraints; className?: string }>
     ),
   { ssr: false }
 );
