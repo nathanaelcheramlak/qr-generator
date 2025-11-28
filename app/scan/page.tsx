@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 import type { ComponentType } from "react";
 import type { QrPayload } from "../../lib/qrSigning";
-import { verifySignedPayload } from "../../lib/qrSigning";
+import { verifyAndDecryptPayload } from "../../lib/qrSigning";
 
 // Dynamically import the QR scanner (client-only)
 const QrScanner = dynamic(
@@ -30,16 +30,16 @@ export default function ScanPage() {
 
     try {
       const parsed: QrPayload = JSON.parse(data);
-      const isValid = await verifySignedPayload(parsed);
+      const result = await verifyAndDecryptPayload(parsed);
 
-      if (!isValid) {
+      if (!result.isValid || !result.data) {
         setVerifiedInfo(null);
-        setScanError("Invalid or tampered QR code. Signature mismatch.");
+        setScanError("Invalid or tampered QR code. Signature verification failed.");
         return;
       }
 
       setScanError(null);
-      setVerifiedInfo({ name: parsed.name, phone: parsed.phone });
+      setVerifiedInfo({ name: result.data.name, phone: result.data.phone });
     } catch (error) {
       setVerifiedInfo(null);
       setScanError("Failed to read QR code. Make sure it was generated here.");
