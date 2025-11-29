@@ -4,7 +4,6 @@ const bodyParser = require('body-parser');
 const crypto = require('crypto');
 
 const app = express();
-const PORT = 3001;
 
 // Middleware
 app.use(cors());
@@ -90,6 +89,7 @@ app.post('/api/decrypt', (req, res) => {
 });
 
 // Start server
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Secure Encryption Server running on http://localhost:${PORT}`);
 });
