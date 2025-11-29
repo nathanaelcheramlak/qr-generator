@@ -9,7 +9,7 @@ import type { ComponentType } from "react";
 const QrScanner = dynamic(
   async () =>
     import("@yudiel/react-qr-scanner").then(
-      (mod) => mod.Scanner as ComponentType<{ onScan?: (result: unknown) => void; onDecode: (data: string | null) => void; onError: (err: unknown) => void; constraints?: MediaTrackConstraints; className?: string }>
+      (mod) => mod.Scanner as ComponentType<{ onScan?: (results: { rawValue: string }[]) => void; onDecode: (data: string | null) => void; onError: (err: unknown) => void; constraints?: MediaTrackConstraints; className?: string }>
     ),
   { ssr: false }
 );
@@ -88,7 +88,7 @@ export default function ScanPage() {
         <div className="space-y-4">
           <div className="rounded-xl border border-slate-800 bg-black/40 overflow-hidden aspect-[3/4] flex items-center justify-center">
             <QrScanner
-              onScan={(results: any) => {
+              onScan={(results: { rawValue: string }[]) => {
                 if (results && results.length > 0) {
                   handleDecode(results[0].rawValue);
                 }
