@@ -28,21 +28,29 @@ export default function ScanPage() {
   const handleDecode = useCallback(async (data: string | null) => {
     if (!data) return;
 
+    console.log("Scanned raw data:", data);
+
     try {
       const parsed: QrPayload = JSON.parse(data);
+      console.log("Parsed payload:", parsed);
+
       const result = await verifyAndDecryptPayload(parsed);
+      console.log("Decryption result:", result);
 
       if (!result.isValid || !result.data) {
+        console.error("Verification failed");
         setVerifiedInfo(null);
         setScanError("Invalid or tampered QR code. Signature verification failed.");
         return;
       }
 
+      console.log("Decryption successful:", result.data);
       setScanError(null);
       setVerifiedInfo({ name: result.data.name, phone: result.data.phone });
     } catch (error) {
       setVerifiedInfo(null);
-      setScanError("Failed to read QR code. Make sure it was generated here.");
+      const msg = error instanceof Error ? error.message : "Failed to read QR code.";
+      setScanError(msg);
       console.error("QR decode error:", error);
     }
   }, []);

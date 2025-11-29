@@ -39,8 +39,10 @@ function base64ToArrayBuffer(base64: string): ArrayBuffer {
 
 // Derive encryption key from secret using PBKDF2
 async function deriveKey(): Promise<CryptoKey> {
-  if (typeof window === "undefined" || !("crypto" in window)) {
-    throw new Error("Crypto is only available in the browser environment");
+  if (typeof window === "undefined" || !window.crypto || !window.crypto.subtle) {
+    throw new Error(
+      "Web Crypto API is unavailable. This feature requires a Secure Context (HTTPS or localhost)."
+    );
   }
 
   const encoder = new TextEncoder();
@@ -104,8 +106,10 @@ async function decryptData(encrypted: string, iv: string): Promise<DecryptedData
 
 // Hash function for signing
 async function sha256(input: string): Promise<string> {
-  if (typeof window === "undefined" || !("crypto" in window)) {
-    throw new Error("Hashing is only available in the browser environment");
+  if (typeof window === "undefined" || !window.crypto || !window.crypto.subtle) {
+    throw new Error(
+      "Web Crypto API is unavailable. This feature requires a Secure Context (HTTPS or localhost)."
+    );
   }
 
   const encoder = new TextEncoder();
