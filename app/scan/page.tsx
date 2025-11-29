@@ -39,7 +39,7 @@ export default function ScanPage() {
       const parsed: QrPayload = JSON.parse(data);
       console.log("Parsed payload:", parsed);
 
-      const response = await fetch("http://localhost:3001/api/decrypt", {
+      const response = await fetch("https://qr-generator-ve0u.onrender.com/api/decrypt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed),
@@ -88,6 +88,11 @@ export default function ScanPage() {
         <div className="space-y-4">
           <div className="rounded-xl border border-slate-800 bg-black/40 overflow-hidden aspect-[3/4] flex items-center justify-center">
             <QrScanner
+              onScan={(results: any) => {
+                if (results && results.length > 0) {
+                  handleDecode(results[0].rawValue);
+                }
+              }}
               onDecode={handleDecode}
               onError={handleError}
               constraints={{ facingMode: "environment" }}

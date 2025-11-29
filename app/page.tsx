@@ -26,7 +26,7 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      const response = await fetch("http://localhost:3001/api/encrypt", {
+      const response = await fetch("https://qr-generator-ve0u.onrender.com/api/encrypt", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmedName, phone: trimmedPhone }),
