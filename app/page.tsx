@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import QRCode from "react-qr-code";
-import { createSignedPayload } from "../lib/qrSigning";
 
 export default function Home() {
   const [name, setName] = useState("");
@@ -27,11 +26,20 @@ export default function Home() {
 
     setIsGenerating(true);
     try {
-      const payload = await createSignedPayload(trimmedName, trimmedPhone);
+      const response = await fetch("http://localhost:3001/api/encrypt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: trimmedName, phone: trimmedPhone }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Encryption failed");
+      }
+
+      const payload = await response.json();
       setQrValue(JSON.stringify(payload));
     } catch (err) {
       setError("Failed to generate QR code. Please try again.");
-      // eslint-disable-next-line no-console
       console.error(err);
     } finally {
       setIsGenerating(false);

@@ -4,8 +4,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useCallback, useState } from "react";
 import type { ComponentType } from "react";
-import type { QrPayload } from "../../lib/qrSigning";
-import { verifyAndDecryptPayload } from "../../lib/qrSigning";
 
 // Dynamically import the QR scanner (client-only)
 const QrScanner = dynamic(
@@ -15,6 +13,13 @@ const QrScanner = dynamic(
     ),
   { ssr: false }
 );
+
+type QrPayload = {
+  encrypted: string;
+  iv: string;
+  authTag: string;
+  hash: string;
+};
 
 type VerifiedInfo = {
   name: string;
@@ -34,19 +39,22 @@ export default function ScanPage() {
       const parsed: QrPayload = JSON.parse(data);
       console.log("Parsed payload:", parsed);
 
-      const result = await verifyAndDecryptPayload(parsed);
-      console.log("Decryption result:", result);
+      const response = await fetch("http://localhost:3001/api/decrypt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(parsed),
+      });
 
-      if (!result.isValid || !result.data) {
-        console.error("Verification failed");
-        setVerifiedInfo(null);
-        setScanError("Invalid or tampered QR code. Signature verification failed.");
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Decryption failed");
       }
 
-      console.log("Decryption successful:", result.data);
+      const result = await response.json();
+      console.log("Decryption successful:", result);
+
       setScanError(null);
-      setVerifiedInfo({ name: result.data.name, phone: result.data.phone });
+      setVerifiedInfo({ name: result.name, phone: result.phone });
     } catch (error) {
       setVerifiedInfo(null);
       const msg = error instanceof Error ? error.message : "Failed to read QR code.";
